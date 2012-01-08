@@ -2223,7 +2223,7 @@
         function chipToggle() {
           $('.legendColorBox').click(function(){
             var my_id = $(this).attr('id');
-            var pattern = new RegExp('[0-9]');
+            var pattern = new RegExp('[0-9]+');
             var selected  = pattern.exec(my_id);
             if (my_id === 'display_all') {
               for (var i = 0; i < series.length; ++i) {
