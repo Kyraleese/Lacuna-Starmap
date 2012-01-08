@@ -23,11 +23,10 @@
       <div id="overview" style="width:150px;height:150px"></div>
 
       <p id="overviewLegend" style="margin-left:10px"></p>
+      <p id="miniatureLegend" style="display: none"></p>
     </div>
 
     <p style="clear:left">Click and drag on either map to zoom in or out.  Click on two points to calculate distance. <a href="">Reset Zoom</a> <a href="sectors.html">Highlight Zones</a></p>
-    <span id="clickdata"></span>
-    <p id="choices">Show:</p>
     <div>
     <h2>Brought to you by the Sea of Goats</h2>
     <img src="misc/goatsea.png"/>
@@ -35,11 +34,10 @@
 
 <script id="source">
 $(document).ready(function () {
-
+  function getData() {
 // TODO get starmap.json from amazonaws
     $.getJSON("example.json",
     function(starmap) {
-
         var label_map = {};
         for (var key in starmap.alliances) {
             label_map[starmap.alliances[key].label] = key;
@@ -54,26 +52,6 @@ $(document).ready(function () {
             }
             return keys;
         }
-
-        var choiceContainer = $("#choices");
-        var keylist = keys(starmap.alliances).sort(function(a,b) {return starmap.alliances[a].id - starmap.alliances[b].id});
-        for (var idx in keylist) {
-            var key = keylist[idx];
-            var val = starmap.alliances[key];
-            if (key == '-2') {
-                // by default only check the Diablotin
-                choiceContainer.append('<br/><input type="checkbox" name="' + key +
-                                       '" checked="checked" id="id' + key + '">' +
-                                       '<label for="id' + key + '">'
-                                        + val.label + '</label>');
-            }
-            else {
-                choiceContainer.append('<br/><input type="checkbox" name="' + key +
-                                       '" id="id' + key + '">' +
-                                       '<label for="id' + key + '">'
-                                        + val.label + '</label>');
-            }
-        };
 
         // setup plot
 
@@ -121,12 +99,14 @@ $(document).ready(function () {
         var plot = {};
         var overview = {};
 
-        plot = $.plot($("#placeholder"), data, options);
+        var plotAccordingToChoices  = function() {
+          plot = $.plot($("#placeholder"), data, options);
 
-        // setup overview
-        // this option shows all points but it doesn't respond to toggle, just the main map overview = $.plot($("#overview"), data, {
-        overview = $.plot($("#overview"), [[0,0]], {  //this option gives an empty small zoom square
-            legend: { show: false},
+          // setup overview
+          // this option shows all points but it doesn't respond to toggle, just the main map overview = $.plot($("#overview"), data, {
+          overview = $.plot($("#overview"), data, {  //this option gives an empty small zoom square
+            chipToggle: true,
+            legend: { show: true, container: $("#miniatureLegend") },
             series: {
                 lines: { show: false },
                 points: { show: true },
@@ -137,6 +117,9 @@ $(document).ready(function () {
             grid: { color: "#999" },
             selection: { mode: "xy" }
           });
+        };
+
+        plotAccordingToChoices();
 
         $("#placeholder").bind("plotselected", function(event, ranges) {
             // clamp the zooming to prevent eternal zoom
@@ -224,14 +207,15 @@ $(document).ready(function () {
                 }
                 previousClick = item;
             }
-        });
+          });
 
         function euclidDist(to, from) {
             // sqrt((x1-x2)^2 + (y1-y2)^2)
             return Math.sqrt(Math.pow(to[0] - from[0],2)+Math.pow(to[1] - from[1],2));
         }
-
-    });
+      });
+    }
+    getData();
 });
 </script>
 
